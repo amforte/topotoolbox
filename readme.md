@@ -44,6 +44,10 @@ Before working with TopoToolbox the directories and functions must be on the sea
 path of Matlab. Enter following code into the command line:
 
         addpath(genpath('C:\path\to\wherever\you\installed\this\TopoToolbox-2'))
+		
+To remove .git-folders from the path, run
+
+        rmpath(genpath('C:\path\to\wherever\you\installed\this\TopoToolbox-2\.git'));
 
 Type `doc` in the command line to open the main documentation page. You'll 
 find the TopoToolbox documentation in the section Supplemental Software.  
@@ -57,7 +61,7 @@ resource for code and examples is the [TopoToolbox blog](http://topotoolbox.word
 
 ### pre 2.3
 
-- Documentation
+- Documentation in the documentation browser
 - new function: ttcmap for creating nice colormaps for DEMs, inparticularly
   if DEMs include topography and bathymetry
 - new function: STREAMobj/zerobaselevel
@@ -65,6 +69,8 @@ resource for code and examples is the [TopoToolbox blog](http://topotoolbox.word
 - new function: STREAMobj/sinuosity
 - new function: GRIDobj/GRIDobj2im
 - new function: hydrosheds2FLOWobj (see in IOtools)
+- new function: egm96heights including the grid ww15mgh.grd that contains global geoid 
+                undulations based on the EGM96 geoid.
 
 
 ### 2.2

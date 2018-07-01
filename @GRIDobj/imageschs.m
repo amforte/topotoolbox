@@ -174,7 +174,7 @@ end
 
 %% Default values can be changed here
 % -----------------------------------
-defaultcolormap = 'landcolor';
+defaultcolormap = 'parula';
 defaulttruecolor = [0 1 0]; 
 defaultfalsecolor = [1 1 1]; 
 defaultnancolor = [1 1 1];
@@ -384,7 +384,7 @@ if nargout == 0
         if alims(1) ~= alims(2) 
             caxis(alims);
         end
-        colormap(cmap(nhs:nhs:nhs*ncolors,:));
+        colormap(gca,cmap(nhs:nhs:nhs*ncolors,:));
         cc = colorbar;%('location','south');
         if ~isempty(colorBarLabel)
             title(cc,colorBarLabel);
