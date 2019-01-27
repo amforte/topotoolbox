@@ -64,10 +64,26 @@ resource for code and examples is the [TopoToolbox blog](http://topotoolbox.word
 - Documentation in the documentation browser
 - new function: ttcmap for creating nice colormaps for DEMs, inparticularly
   if DEMs include topography and bathymetry
+- new function: ttscm for access to scientific colormaps;
+  see [Fabio Crameri's website](http://www.fabiocrameri.ch/colourmaps.php)
+- new function: mappingapp (lightweighed GUI for mapping points simultaneously in
+                planform and profile view) still beta!
+- new function: FLOWobj/mapfromnal
+- new function: STREAMobj/getvalue
+- new function: STREAMobj/hillslopearea
 - new function: STREAMobj/zerobaselevel
 - new function: STREAMobj/knickpointfinder
+- new function: STREAMobj/stackedplot
 - new function: STREAMobj/sinuosity
+- new function: STREAMobj/clean
+- new function: STREAMobj/nal2nal
 - new function: GRIDobj/GRIDobj2im
+- new function: GRIDobj/getextent
+- new function: IOtools/readexample
+- renamed GRIDobj/project2GRIDobj to GRIDobj/project. In addition, the function has 
+  a number of new functionalities.
+- modification: STREAMobj/modify has new options for interactively modifying stream networks
+- changes to readopentopo, getcoordinates, getoutline, polygon2GRIDobj, line2GRIDobj
 - new function: hydrosheds2FLOWobj (see in IOtools)
 - new function: egm96heights including the grid ww15mgh.grd that contains global geoid 
                 undulations based on the EGM96 geoid.
@@ -75,10 +91,16 @@ resource for code and examples is the [TopoToolbox blog](http://topotoolbox.word
 
 ### 2.2
 
-- TTLEM is part of TopoToolbox
+- TTLEM is part of TopoToolbox;
+  see our paper: Campforts, B., Schwanghart, W., Govers, G. (2017): Accurate simulation 
+  of transient landscape evolution by eliminating numerical diffusion: the TTLEM 1.0 model. 
+  Earth Surface Dynamics, 5, 47-66. [DOI: 10.5194/esurf-5-47-2017](http://dx.doi.org/10.5194/esurf-5-47-2017)
 - new functions for smoothing and hydrological correction: 
   STREAMobj/crs, STREAMobj/crsapp, STREAMobj/smooth, STREAMobj/crslin, 
-  STREAMobj/quantcarve, FLOWobj/quantcarve
+  STREAMobj/quantcarve, FLOWobj/quantcarve;
+  see our paper: Schwanghart, W., Scherler, D., 2017. Bumps in river profiles: uncertainty 
+  assessment and smoothing using quantile regression techniques. Earth Surface Dynamics, 5, 
+  821-839. [DOI: 10.5194/esurf-5-821-2017](http://dx.doi.org/10.5194/esurf-5-821-2017)
 - modification: GRIDobj way to store referencing information was changed
 - modification: FLOWobj now supports multiple flow directions and Dinf.
 - modification: several new options for imageschs
@@ -136,7 +158,9 @@ resource for code and examples is the [TopoToolbox blog](http://topotoolbox.word
 
 ### 2.1
 
-- new function: GRIDobj/excesstopography
+- new function: GRIDobj/excesstopography; see our paper Blöthe, J.H., Korup, O., 
+  Schwanghart, W. (2015): Large landslides lie low: Excess topography in the 
+  Himalaya-Karakorum ranges. Geology, 43, 523-526. [DOI: 10.1130/G36527.1](http://dx.doi.org/10.1130/G36527.1)
 - new function: GRIDobj/GRIDobj2polygon
 - new function: STREAMobj/getnal
 - new function: STREAMobj/sidebranching

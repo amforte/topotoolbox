@@ -6,6 +6,7 @@ function DEM = inpaintnans(DEM,varargin)
 %
 %     DEMf = inpaintnans(DEM,type)
 %     DEMf = inpaintnans(DEM,type,k)
+%     DEMf = inpaintnans(DEM,type,k,conn)
 %     DEMf = inpaintnans(DEM,DEM2)
 %     DEMf = inpaintnans(DEM,DEM2,method)
 %
@@ -45,7 +46,9 @@ function DEM = inpaintnans(DEM,varargin)
 %                     argument k.
 %     k         if supplied, only connected components with 
 %               less or equal number of k pixels are filled. Others
-%               remain nan
+%               remain nan. Set to inf if all pixels enclosed by non-nan
+%               pixels should be filled.
+%     conn      Connectivity, specified as scalar 4 or 8
 %     DEM2      if the second input argument is a GRIDobj, inpaintnans will
 %               interpolate from DEM2 to locations of missing values in
 %               DEM. 
@@ -70,7 +73,7 @@ function DEM = inpaintnans(DEM,varargin)
 % See also: ROIFILL, FILLSINKS, BWDIST
 %
 % Author: Wolfgang Schwanghart (w.schwanghart[at]geo.uni-potsdam.de)
-% Date: 3. February, 2018
+% Date: 3. September, 2018
 
 if nargin == 1
     DEM.Z = deminpaint(DEM.Z,varargin{:});
@@ -97,21 +100,25 @@ end
 
 end
 
-function dem = deminpaint(dem,type,k)
+function dem = deminpaint(dem,type,k,conn)
 if nargin == 1
     type = 'laplace';
     k    = inf;
+    conn = 8;
 elseif nargin == 2
     k    = inf;
+    conn = 8;
+elseif nargin == 3
+    conn = 8;
 end
    
 % error checking    
 % clean boundary
 I = isnan(dem);
-I = imclearborder(I);
+I = imclearborder(I,conn);
 
 if ~isinf(k)
-    I = xor(bwareaopen(I,k+1),I);
+    I = xor(bwareaopen(I,k+1,conn),I);
 end
 
 % 
@@ -137,14 +144,14 @@ switch lower(type)
         mask(I | isnan(dem)) = -inf;
         marker = -marker;
         mask   = -mask;
-        demrec = imreconstruct(marker,mask);
+        demrec = imreconstruct(marker,mask,conn);
         dem(I) = -demrec(I);
     otherwise
         error('type unknown')
 end
 
 else
-    CC = bwconncomp(I);
+    CC = bwconncomp(I,conn);
     STATS = regionprops(CC,'SubarrayIdx','Image');
    
     for r = 1:numel(STATS)
