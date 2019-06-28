@@ -79,6 +79,15 @@ function [Sout,nalix] = modify(S,varargin)
 %     same as 'tributaryto' but tributaries include the pixel of the
 %     receiving stream.
 %
+%     'lefttrib' instance of STREAMobj
+%     returns the stream network that is tributary to a stream from the
+%     left. For example, modify(S,'lefttrib',trunk(S)) selects the streams
+%     in S that are left tributaries to the trunk stream of S.
+%
+%     'righttrib' instance of STREAMobj
+%     returns the stream network that is tributary to a stream from the
+%     right.
+%
 %     'shrinkfromtop' scalar distance
 %     removes parts of the stream network that are within the specified
 %     distance from the channelheads.
@@ -91,8 +100,10 @@ function [Sout,nalix] = modify(S,varargin)
 %     differ.
 %
 %     'interactive'  string
-%        'polyselect': plots the stream network and starts a polygon tool to
-%                      select the stream network of interest.
+%        'polyselect': plots the stream network and starts a polygon tool 
+%                      to select the stream network of interest.
+%        'outletselect': select a basin based on a manually selected
+%                      outlet.
 %        'reachselect': select a reach based on two locations on the network
 %        'channelheadselect': select a number of channel heads and derive 
 %                      stream network from them.
@@ -132,10 +143,11 @@ function [Sout,nalix] = modify(S,varargin)
 %     hold off
 %
 %     
-% See also: STREAMobj, STREAMobj/trunk, demo_modifystreamnet
+% See also: STREAMobj, STREAMobj/trunk, STREAMobj/subgraph, 
+%           demo_modifystreamnet
 %
 % Author: Wolfgang Schwanghart (w.schwanghart[at]geo.uni-potsdam.de)
-% Date: 9. January, 2019
+% Date: 4. June, 2019
 
 narginchk(3,3)
 
@@ -149,15 +161,18 @@ addParamValue(p,'distance',[],@(x) isnumeric(x) && numel(x)<=2);
 addParamValue(p,'maxdsdistance',[],@(x) isscalar(x) && x>0);
 addParamValue(p,'interactive',[],@(x) ischar(validatestring(x,{'polyselect','reachselect',...
                                                                'channelheadselect','rectselect',...
-                                                               'ellipseselect'})));
+                                                               'ellipseselect','outletselect'})));
 addParamValue(p,'tributaryto',[],@(x) isa(x,'STREAMobj'));
 addParamValue(p,'tributaryto2',[],@(x) isa(x,'STREAMobj'));
+addParamValue(p,'righttrib',[],@(x) isa(x,'STREAMobj'));
+addParamValue(p,'lefttrib',[],@(x) isa(x,'STREAMobj'));
 addParamValue(p,'shrinkfromtop',[],@(x) isnumeric(x) && isscalar(x) && x>0);
 addParamValue(p,'upstreamto',[],@(x) isa(x,'GRIDobj') || isnumeric(x));
 addParamValue(p,'downstreamto',[],@(x) isa(x,'GRIDobj') || isnumeric(x));
 addParamValue(p,'rmconncomps',[],@(x) isnumeric(x) && x>0 && isscalar(x));
 addParamValue(p,'rmconncomps_ch',[],@(x) isnumeric(x) && x>=0 && isscalar(x));
 addParamValue(p,'rmupstreamtoch',[],@(x) isa(x,'STREAMobj'));
+addParamValue(p,'fromch2IX',[]);
 addParamValue(p,'rmnodes',[],@(x) isa(x,'STREAMobj'));
 addParamValue(p,'clip',[],@(x) (isnumeric(x) && size(x,2)==2 && size(x,1)>2) || isa(x,'GRIDobj'));
 addParamValue(p,'nal',[],@(x) isnal(S,x));
@@ -304,11 +319,49 @@ elseif ~isempty(p.Results.tributaryto) || ~isempty(p.Results.tributaryto2)
         % add trunk stream pixels
         I(S.ixc(II(S.ixc) & ~II(S.ix))) = true;
     end
-        
+
+elseif ~isempty(p.Results.righttrib) || ~isempty(p.Results.lefttrib)
+%% select tributaries from a specified direction    
+    % calculate directions
+    direc = tribdir(S);
+    
+    if ~isempty(p.Results.righttrib)
+        St = p.Results.righttrib;
+        val = 1;
+    else
+        St = p.Results.lefttrib;
+        val = -1;
+    end
+    II = STREAMobj2GRIDobj(St);
+    ii = II.Z(S.IXgrid(S.ixc)) & ~II.Z(S.IXgrid(S.ix)) & (direc(S.ix) == val);
+    
+    I = false(size(S.x));
+    for r = numel(S.ix):-1:1
+        I(S.ix(r)) = I(S.ixc(r)) || ii(r);
+    end
+    
 elseif ~isempty(p.Results.shrinkfromtop)
 %% shrink from top
     d = distance(S,'max_from_ch');
     I = d > p.Results.shrinkfromtop;
+elseif ~isempty(p.Results.fromch2IX)
+    ch = streampoi(S,'channelhead','logical');
+    en = ismember(S.IXgrid,p.Results.fromch2IX);
+    
+    pp = en;
+    for r = numel(S.ix):-1:1
+        if pp(S.ixc(r))
+            pp(S.ix(r)) = true;
+        end
+    end
+     
+    for r = 1:numel(S.ix)
+        if ch(S.ix(r)) && ~en(S.ixc(r)) && pp(S.ix(r))
+            ch(S.ixc(r)) = true;
+        end
+    end
+    
+    I = ch;
     
 elseif ~isempty(p.Results.rmconncomps)
 %% remove connected conn comps
@@ -352,8 +405,25 @@ elseif ~isempty(p.Results.interactive)
     xlim(ax,[lims(1)-(lims(2)-lims(1))/20 lims(2)+(lims(2)-lims(1))/20])
     ylim(ax,[lims(3)-(lims(4)-lims(3))/20 lims(4)+(lims(4)-lims(3))/20])
     
-    meth = validatestring(p.Results.interactive,{'polyselect','reachselect','channelheadselect','rectselect','ellipseselect'});
+    meth = validatestring(p.Results.interactive,...
+        {'polyselect','reachselect','channelheadselect',...
+         'rectselect','ellipseselect','outletselect'});
     switch meth
+        case 'outletselect'
+            title('map outlet and double-click to finalize')
+            hold on
+            htemp = plot(ax,[],[]);
+            hp = impoint('PositionConstraintFcn',@getnearest);
+            addNewPositionCallback(hp,@drawbasin);
+            pos = wait(hp);
+            hold off
+            delete(hp);
+            I = S.x==pos(1) & S.y==pos(2);
+            for r = numel(S.ixc):-1:1
+                I(S.ix(r)) = I(S.ixc(r)) || I(S.ix(r));
+            end
+            
+        
         case 'channelheadselect'
             title('map channel heads and enter any key to finalize')
             hold on
@@ -503,6 +573,16 @@ function drawpath(pos)
     end
 end 
 
+    function II = drawbasin(pos)
+        II = S.x==pos(1) & S.y==pos(2);
+        IX = S.IXgrid(II);
+        Stemp = modify(S,'upstreamto',IX);
+        delete(htemp)
+        try
+            htemp = plot(Stemp,'r');
+        end
+        
+    end
         
 end
             

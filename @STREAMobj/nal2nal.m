@@ -1,6 +1,6 @@
 function nal2 = nal2nal(S2,S1,nal1,fillval)
 
-%SETNAL 
+%NAL2NAL map one node-attribute list to another 
 %
 % Syntax
 %
@@ -27,6 +27,23 @@ function nal2 = nal2nal(S2,S1,nal1,fillval)
 % Output arguments
 %
 %     nalB     nal of SB
+%
+% Example
+%
+%     DEM = GRIDobj('srtm_bigtujunga30m_utm11.tif');
+%     FD  = FLOWobj(DEM);
+%     S   = STREAMobj(FD,'minarea',1000);
+%     S   = klargestconncomps(S);
+% 
+%     A   = flowacc(FD);
+%     c   = chitransform(S,A); 
+%     S2  = modify(S,'streamorder',1);
+%     c2  = nal2nal(S2,S,c,0);
+%     plot(S,'k')
+%     hold on
+%     plotc(S2,c2); 
+%     h = colorbar;
+%     h.Label.String ='\chi'; 
 %
 %
 % See also: STREAMobj2GRIDobj
@@ -55,11 +72,4 @@ end
 
 
 [I,locb] = ismember(S1.IXgrid,S2.IXgrid);
-
-if ~all(I)
-    error('TopoToolbox:setnal',...
-            ['S1 must be a subgraph of S2. All nodes in S1\n'...
-             'must be a member of the network S2']);
-end
-    
-nal2(locb) = nal1;
+nal2(locb(I)) = nal1(I);
